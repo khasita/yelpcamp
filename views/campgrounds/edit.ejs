@@ -2,7 +2,12 @@
 <div class="row">
   <h1 class="text-center">EDIT CAMPGROUND</h1>
   <div class="col-6 offset-3">
-    <form action="/campgrounds/<%= editcamp._id %>?_method=PUT" method="POST">
+    <form
+      action="/campgrounds/<%= editcamp._id %>?_method=PUT"
+      method="POST"
+      novalidate
+      class="validate-form"
+    >
       <div class="mb-3">
         <label for="title" class="form-label">Campground Title:</label>
         <input
@@ -13,6 +18,7 @@
           value="<%= editcamp.title %>"
           required
         />
+        <div class="valid-feedback">Looks good!</div>
       </div>
       <br />
       <div class="mb-3">
@@ -25,6 +31,7 @@
           value="<%= editcamp.location %>"
           required
         />
+        <div class="valid-feedback">Looks good!</div>
       </div>
       <div class="mb-3">
         <label for="image" class="form-label">Image URL:</label>
@@ -36,6 +43,7 @@
           value="<%= editcamp.image %>"
           required
         />
+        <div class="valid-feedback">Looks good!</div>
       </div>
       <div class="mb-3">
         <label for="price" class="form-label">Campground Price:</label>
@@ -50,7 +58,9 @@
             name="campground[price]"
             value="<%= editcamp.price%>"
             aria-describedby="price label"
+            required
           />
+          <div class="valid-feedback">Looks good!</div>
         </div>
       </div>
 
@@ -65,6 +75,7 @@
         >
 <%= editcamp.description %>
         </textarea>
+        <div class="valid-feedback">Looks good!</div>
       </div>
       <br />
       <div class="mb-3">
