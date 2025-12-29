@@ -2,14 +2,15 @@ const express = require("express");
 const app = express();
 const path = require("path");
 const mongoose = require("mongoose");
-const Campground = require("./models/campground");
 const methodOverride = require("method-override");
 const morgan = require("morgan");
 const ejsMate = require("ejs-mate");
-const catchAsync = require("./utils/catchAsync");
 const ExpressError = require("./utils/ExpressError");
-const { campgroundSchema, reviewSchema } = require("./schemas.js");
-const review = require("./models/review");
+const session = require("express-session");
+const flash = require("connect-flash");
+
+const campgrounds = require("./routes/campgrounds");
+const reviews = require("./routes/reviews");
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -17,26 +18,6 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 app.use(morgan("dev"));
-
-const validateCampground = (req, res, next) => {
-  const { error } = campgroundSchema.validate(req.body);
-  if (error) {
-    const msg = error.details.map((el) => el.message).join(",");
-    throw new ExpressError(msg, 400);
-  } else {
-    next();
-  }
-};
-
-const validateReview = (req, res, next) => {
-  const { error } = reviewSchema.validate(req.body);
-  if (error) {
-    const msg = error.details.map((el) => el.message).join(",");
-    throw new ExpressError(msg, 400);
-  } else {
-    next();
-  }
-};
 
 app.engine("ejs", ejsMate);
 
@@ -48,86 +29,29 @@ db.once("open", () => {
   console.log("Database connected");
 });
 
-app.get("/campgrounds/new", (req, res) => {
-  res.render("campgrounds/new");
+const sessionConfig = {
+  secret: "thisismysecret",
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    httpOnly: true,
+    expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+  },
+};
+
+app.use(session(sessionConfig));
+
+app.use(flash()); // Flash messages are stored in req.session
+app.use((req, res, next) => {
+  res.locals.success = req.flash("success");
+  res.locals.error = req.flash("error");
+  next();
 });
 
-app.get(
-  "/campgrounds",
-  catchAsync(async (req, res) => {
-    const camp = await Campground.find({});
-    res.render("campgrounds/index", { camp });
-  })
-);
-
-app.post(
-  "/campgrounds",
-  validateCampground,
-  catchAsync(async (req, res) => {
-    // if (!req.body.campground)
-    //   throw new ExpressError("Invalid Campground Data", 400);
-    const newcamp = new Campground(req.body.campground);
-    await newcamp.save();
-    res.redirect(`/campgrounds/${newcamp._id}`);
-  })
-);
-
-app.get(
-  "/campgrounds/:id",
-  catchAsync(async (req, res) => {
-    const { id } = req.params;
-    const campground = await Campground.findById(id).populate("reviews");
-    res.render("campgrounds/show", { campground });
-  })
-);
-
-app.get(
-  "/campgrounds/:id/edit",
-  catchAsync(async (req, res) => {
-    const { id } = req.params;
-    const editcamp = await Campground.findById(id);
-    res.render("campgrounds/edit", { editcamp });
-  })
-);
-
-app.put(
-  "/campgrounds/:id",
-  validateCampground,
-  catchAsync(async (req, res) => {
-    const { id } = req.params;
-    await Campground.findByIdAndUpdate(id, { ...req.body.campground });
-    res.redirect(`/campgrounds/${id}`);
-  })
-);
-
-app.delete(
-  "/campgrounds/:id",
-  catchAsync(async (req, res) => {
-    const { id } = req.params;
-    await Campground.findByIdAndDelete(id);
-    res.redirect("/campgrounds");
-  })
-);
-
-app.delete("/campground/:id/reviews/:reviewId", async (req, res) => {
-  const { id, reviewId } = req.params;
-  await Campground.findByIdAndUpdate(id, { $pull: { reviews: reviewId } });
-  await review.findByIdAndDelete(reviewId);
-  res.redirect(`/campgrounds/${id}`);
-});
-
-app.post(
-  "/campgrounds/:id/reviews",
-  validateReview,
-  catchAsync(async (req, res) => {
-    const rev = await Campground.findById(req.params.id);
-    const newReview = new review(req.body.review);
-    rev.reviews.push(newReview);
-    await newReview.save();
-    await rev.save();
-    res.redirect(`/campgrounds/${rev._id}`);
-  })
-);
+app.use("/campgrounds", campgrounds);
+app.use("/campgrounds/:id/reviews", reviews);
+app.use(express.static(path.join(__dirname, "public")));
 
 app.all(/(.*)/, (req, res, next) => {
   next(new ExpressError("Page Not Found", 404));
@@ -150,3 +74,9 @@ app.listen(3000, () => {
 // Async function returns a promise. If the promise is rejected, Express will catch the error and pass it to the error handling middleware.
 // In an async function, throw means the async function returns a rejected promise.
 // The wrapper calls your async route and attaches a .catch(). With wrapAsync, all async errors become next(err) automatically.
+// Cookies are little bits of information that are stored in a users browser when browsing a particular website.
+// Once a cookie is set, a users browser will send the cookie on every subsequent request to the site.
+// HTTP is stateless. Cookies help to maintain stateful information for the stateless HTTP protocol.
+// Cookies allow use to make HTTP stateful.
+// Sessions: Its not pratical or secure to store a lot of data client-side using cookies. This is where sessions come in.
+// Sessions are a server-side store that we use to make HTTP stateful. Instead of storing data using cookies, we store the data on the server-side and then send the browser a cookie that can be used to retrieve the data.
