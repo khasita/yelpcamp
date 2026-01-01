@@ -3,7 +3,7 @@
   <h1 class="text-center">EDIT CAMPGROUND</h1>
   <div class="col-6 offset-3">
     <form
-      action="/campgrounds/<%= editcamp._id %>?_method=PUT"
+      action="/campgrounds/<%=campground._id %>?_method=PUT"
       method="POST"
       novalidate
       class="validate-form"
@@ -15,7 +15,7 @@
           type="text"
           id="title"
           name="campground[title]"
-          value="<%= editcamp.title %>"
+          value="<%=campground.title %>"
           required
         />
         <div class="valid-feedback">Looks good!</div>
@@ -28,7 +28,7 @@
           type="text"
           id="location"
           name="campground[location]"
-          value="<%= editcamp.location %>"
+          value="<%=campground.location %>"
           required
         />
         <div class="valid-feedback">Looks good!</div>
@@ -40,7 +40,7 @@
           type="text"
           id="image"
           name="campground[image]"
-          value="<%= editcamp.image %>"
+          value="<%=campground.image %>"
           required
         />
         <div class="valid-feedback">Looks good!</div>
@@ -56,7 +56,7 @@
             class="form-control"
             aria-label="price"
             name="campground[price]"
-            value="<%= editcamp.price%>"
+            value="<%=campground.price%>"
             aria-describedby="price label"
             required
           />
@@ -73,7 +73,7 @@
           name="campground[description]"
           required
         >
-<%= editcamp.description %>
+<%=campground.description %>
         </textarea>
         <div class="valid-feedback">Looks good!</div>
       </div>
