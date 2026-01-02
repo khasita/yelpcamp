@@ -25,7 +25,6 @@ router.delete("/:reviewId", isLoggedIn, isReviewAuthor, async (req, res) => {
   const { id, reviewId } = req.params;
   await Campground.findByIdAndUpdate(id, { $pull: { reviews: reviewId } });
   await review.findByIdAndDelete(reviewId);
-  req.flash("success", "Deleted your review");
   res.redirect(`/campgrounds/${id}`);
 });
 
