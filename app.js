@@ -11,17 +11,20 @@ const flash = require("connect-flash");
 const User = require("./models/user");
 const passport = require("passport"); // pbkdf2-based algorithm for hashing passwords
 const Local = require("passport-local");
-
 const userRoutes = require("./routes/users");
 const campgroundRoutes = require("./routes/campgrounds");
 const reviewRoutes = require("./routes/reviews");
 
+mongoose.connect("mongodb://localhost:27017/yelp-camp");
+const db = mongoose.connection;
+db.on("error", console.error.bind(console, "connection error:"));
+db.once("open", () => {
+  console.log("Database connected");
+});
+
+app.engine("ejs", ejsMate);
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-
-app.use(express.urlencoded({ extended: true }));
-app.use(methodOverride("_method"));
-app.use(morgan("dev"));
 
 const sessionConfig = {
   secret: "thisismysecret",
@@ -34,24 +37,24 @@ const sessionConfig = {
   },
 };
 
+// Setup/Parsers
+app.use(express.urlencoded({ extended: true }));
+app.use(methodOverride("_method"));
+app.use(express.static(path.join(__dirname, "public")));
+app.use(morgan("dev"));
+
+// Session
+
 app.use(session(sessionConfig));
-app.use(flash()); // Flash messages are stored in req.session
+app.use(flash());
+
+// Passport Configuration
 
 app.use(passport.initialize());
 app.use(passport.session());
 passport.use(new Local(User.authenticate()));
 passport.serializeUser(User.serializeUser()); // How to store a user in the session
 passport.deserializeUser(User.deserializeUser()); // How to get a user from the session
-
-app.engine("ejs", ejsMate);
-
-mongoose.connect("mongodb://localhost:27017/yelp-camp");
-const db = mongoose.connection;
-
-db.on("error", console.error.bind(console, "connection error:"));
-db.once("open", () => {
-  console.log("Database connected");
-});
 
 app.use((req, res, next) => {
   res.locals.currentUser = req.user;
@@ -60,17 +63,22 @@ app.use((req, res, next) => {
   next();
 });
 
+// Routes
+
 app.use("/campgrounds", campgroundRoutes);
 app.use("/campgrounds/:id/reviews", reviewRoutes);
 app.use("/", userRoutes);
-
-app.use(express.static(path.join(__dirname, "public")));
 
 app.all(/(.*)/, (req, res, next) => {
   next(new ExpressError("Page Not Found", 404));
 });
 
+// Flash messages are stored in req.session
+
 app.use((err, req, res, next) => {
+  if (res.headersSent) {
+    return next(err);
+  }
   const { statusCode = 500 } = err;
   if (!err.message) err.message = "Oh No, Something Went Wrong!";
   res.status(statusCode).render("error", { err });
