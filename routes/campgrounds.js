@@ -3,15 +3,44 @@ const router = express.Router();
 const catchAsync = require("../utils/catchAsync");
 const { isLoggedIn, isAuthor, validateCampground } = require("../middleware");
 const campgrounds = require("../controllers/campgrounds");
+const multer = require("multer");
+const { storage } = require("../cloudinary");
+const upload = multer({ storage });
+
+// const uploadMiddleware = upload.array("image"); // Reference the middleware function
+
+// router.route("/").post(
+//   (req, res, next) => {
+//     uploadMiddleware(req, res, function (err) {
+//       if (err) {
+//         // THIS WILL CATCH THE ERROR IF MULTER/CLOUDINARY FAILS
+//         console.error("--- UPLOAD ERROR CAUGHT ---");
+//         console.error(err);
+//         return res
+//           .status(500)
+//           .send("Upload Failed. Check console for details.");
+//       }
+//       next(); // Proceed only if upload succeeds
+//     });
+//   },
+//   (req, res) => {
+//     console.log(req.body, req.files); // SHOULD PRINT NOW
+//     res.send("It worked!");
+//   }
+// );
 
 router
   .route("/")
   .get(catchAsync(campgrounds.index))
-  .post(
-    isLoggedIn,
-    validateCampground,
-    catchAsync(campgrounds.createCampground)
-  );
+  // .post(
+  //   isLoggedIn,
+  //   validateCampground,
+  //   catchAsync(campgrounds.createCampground)
+  // );
+  .post(upload.array("image"), (req, res) => {
+    console.log(req.body, req.files);
+    res.send("It worked!");
+  });
 
 router.get("/new", isLoggedIn, campgrounds.renderNewForm);
 
