@@ -65,6 +65,7 @@
     </div>
   </div>
   <div class="col-6">
+    <div id="map" style="width: 100%; height: 300px"></div>
     <% if (currentUser) { %>
     <h2>Leave a Review</h2>
     <form
@@ -170,3 +171,14 @@
     <% } %>
   </div>
 </div>
+
+<script>
+  const maptilerApiKey = '<%- process.env.MAPTILER_API_KEY %>';
+</script>
+<div id="campground-data" data-campground='<%- JSON.stringify(campground).replace(/'/g, "&#39;") %>' style="display:none"></div>
+<script>
+  const campground = JSON.parse(document.getElementById('campground-data').dataset.campground);
+</script>
+
+<script src="/javascripts/showPageMap.js"></script>
+<!-- code to display map -->
