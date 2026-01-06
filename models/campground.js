@@ -17,6 +17,17 @@ const CampgroundSchema = new Schema({
   price: Number,
   description: String,
   location: String,
+  geometry: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      required: true,
+    },
+    coordinates: {
+      type: [Number],
+      required: true,
+    },
+  },
   author: {
     type: Schema.Types.ObjectId,
     ref: "User",
@@ -28,6 +39,13 @@ const CampgroundSchema = new Schema({
     },
   ],
 });
+
+// Example: GeoJSON
+// format of the geometry field in the req.body
+// geometry: {
+//   type: 'Point',
+//   coordinates: [ -118.24276607483625, 34.05369110515695 ]
+// }
 
 CampgroundSchema.post("findOneAndDelete", async function (doc) {
   if (doc) {
