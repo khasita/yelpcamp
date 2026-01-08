@@ -10,7 +10,6 @@ const methodOverride = require("method-override");
 const morgan = require("morgan");
 const ejsMate = require("ejs-mate");
 const ExpressError = require("./utils/ExpressError");
-const session = require("express-session");
 const flash = require("connect-flash");
 const User = require("./models/user");
 const passport = require("passport"); // pbkdf2-based algorithm for hashing passwords
@@ -20,8 +19,13 @@ const campgroundRoutes = require("./routes/campgrounds");
 const reviewRoutes = require("./routes/reviews");
 const sanitizeV5 = require("./utils/mongoSanitizeV5.js");
 const helmet = require("helmet");
+const session = require("express-session");
+const { MongoStore } = require("connect-mongo");
 
-mongoose.connect("mongodb://localhost:27017/yelp-camp-maptiler");
+// const dbUrl = process.env.DB_URL;
+
+const dbUrl = "mongodb://localhost:27017/yelp-camp-maptiler";
+mongoose.connect(dbUrl);
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", () => {
@@ -33,9 +37,22 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.set("query parser", "extended");
 
+const store = MongoStore.create({
+  mongoUrl: dbUrl,
+  touchAfter: 24 * 60 * 60,
+  crypto: {
+    secret: "binghamton",
+  },
+});
+
+store.on("error", (e) => {
+  console.log("SESSION STORE ERROR", e);
+});
+
 const sessionConfig = {
+  store,
   name: "session",
-  secret: "thisismysecret",
+  secret: "binghamton",
   resave: false,
   saveUninitialized: true,
   cookie: {
@@ -108,7 +125,7 @@ passport.serializeUser(User.serializeUser()); // How to store a user in the sess
 passport.deserializeUser(User.deserializeUser()); // How to get a user from the session
 
 app.use((req, res, next) => {
-  console.log(req.query);
+  // console.log(req.query);
   res.locals.currentUser = req.user;
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");

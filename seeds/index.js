@@ -30,12 +30,11 @@ const seedDB = async () => {
         ],
       },
       title: `${sample(descriptors)} ${sample(places)}`,
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      description: "Explore the place by clicking the view option below.",
       price,
       images: [
         {
-          url: "https://res.cloudinary.com/dqgkbdn3f/image/upload/v1767570264/YelpCamp/v9htjecc2xr4ldcggkea.jpg",
+          url: "https://res.cloudinary.com/dqgkbdn3f/image/upload/v1767839227/YelpCamp/f9s9bfuseh2m67raicau.jpg",
           filename: "YelpCamp/v9htjecc2xr4ldcggkea",
         },
         {
