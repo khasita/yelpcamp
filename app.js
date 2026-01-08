@@ -22,9 +22,9 @@ const helmet = require("helmet");
 const session = require("express-session");
 const { MongoStore } = require("connect-mongo");
 
-// const dbUrl = process.env.DB_URL;
+const dbUrl = process.env.DB_URL;
 
-const dbUrl = "mongodb://localhost:27017/yelp-camp-maptiler";
+// const dbUrl = "mongodb://localhost:27017/yelp-camp-maptiler";
 mongoose.connect(dbUrl);
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
